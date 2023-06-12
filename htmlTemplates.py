@@ -27,6 +27,10 @@ css = '''
   padding: 0 1.5rem;
   color: #fff;
 }
+
+.css-erpbzb e1ewe7hr3{
+    display:none;
+}
 '''
 
 bot_template = '''
