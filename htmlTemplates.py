@@ -28,8 +28,8 @@ css = '''
   color: #fff;
 }
 
-.css-erpbzb e1ewe7hr3{
-    display:none;
+.css-erpbzb{
+    display:none !important;
 }
 '''
 
