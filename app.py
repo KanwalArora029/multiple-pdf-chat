@@ -18,7 +18,7 @@ def get_pdf_text(pdf_docs):
     for pdf_doc in pdf_docs:
         pdf_reader = PdfReader(pdf_doc)
         for page in pdf_reader.pages:
-            pdf_text += page.extractText()        
+            pdf_text += page.extract_text()        
     return pdf_text
 
 
@@ -26,21 +26,21 @@ def get_text_chunks(text):
     text_splitter = CharacterTextSplitter(
         separator="\n",
         chunk_size=1000,
-        overlap_size=200,
+        chunk_overlap=200,
         length_function=len
     )
-    text_chunks = text_splitter.split(text)
+    text_chunks = text_splitter.split_text(text)
     return text_chunks
 
 def get_vectorstores(chunks):
-    embeddings = OpenAIEmbeddings()
-    #embeddings = HuggingFaceInstructEmbeddings(model_name="hkunlp/instructor-xl")
+    #embeddings = OpenAIEmbeddings()
+    embeddings = HuggingFaceInstructEmbeddings(model_name="hkunlp/instructor-xl")
     vectorstore = FAISS.from_texts(texts=chunks,embedding=embeddings)
     return vectorstore
 
 def get_conversation_chain(vectorstore):
-    llm = ChatOpenAI()
-    #llm = HuggingFaceHub(repo_id="google/flan-t5-xxl", model_kwargs={"temperature":0.5, "max_length":512})
+    #llm = ChatOpenAI()
+    llm = HuggingFaceHub(repo_id="google/flan-t5-xxl", model_kwargs={"temperature":0.5, "max_length":512})
     memory = ConversationBufferMemory(memory_key='chat_history', return_messages=True)
     conversation_chain = ConversationalRetrievalChain.from_llm(
         llm=llm,
@@ -49,16 +49,31 @@ def get_conversation_chain(vectorstore):
     )
     return conversation_chain
 
+def handle_userinput(user_question):
+    response = st.session_state.conversation({'question': user_question})
+    st.session_state.chat_history = response['chat_history']
+
+    for i, message in enumerate(st.session_state.chat_history):
+        if i % 2 == 0:
+            st.write(user_template.replace(
+                "{{MSG}}", message.content), unsafe_allow_html=True)
+        else:
+            st.write(bot_template.replace(
+                "{{MSG}}", message.content), unsafe_allow_html=True)
+
 def main():
     load_dotenv()
     st.set_page_config(page_title='Chat  with multiple PDF', page_icon=':books')
-    st.markdown(css, unsafe_allow_html=True)
+    st.write(css, unsafe_allow_html=True)
 
     if "conversation" not in st.session_state:
         st.session_state.conversation = None
     
     st.title('Chat  with multiple PDF')
-    st.text_input("Ask a questtion about your documents:")
+
+    user_question = st.text_input("Ask a questtion about your documents:")
+    if user_question:
+        handle_userinput(user_question)
 
     with st.sidebar:
         st.subheader("Your Documents")
@@ -79,8 +94,6 @@ def main():
 
                 ## create conversation chain
                 st.session_state.conversation = get_conversation_chain(vectorstore)
-    
-    st.session_state.conversation
 
 if __name__=='__main__':
     main()

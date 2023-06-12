@@ -1,3 +1,7 @@
+## get base url
+import os
+base_url = os.path.dirname(os.path.abspath(__file__))
+
 css = '''
 <style>
 .chat-message {
@@ -28,7 +32,7 @@ css = '''
 bot_template = '''
 <div class="chat-message bot">
     <div class="avatar">
-        <img src="https://i.ibb.co/cN0nmSj/Screenshot-2023-05-28-at-02-37-21.png" style="max-height: 78px; max-width: 78px; border-radius: 50%; object-fit: cover;">
+        <img src="{{base_url}}/images/bot.jpg" style="max-height: 78px; max-width: 78px; border-radius: 50%; object-fit: cover;">
     </div>
     <div class="message">{{MSG}}</div>
 </div>
